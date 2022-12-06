@@ -39,6 +39,8 @@ private:
 public:
 
     friend ostream& operator<<(ostream& os, Rack item);
+    friend bool operator==(Rack a, Rack b);
+    friend bool operator==(Rack a, string str);
 
     //Default Constructor
     Rack()
@@ -118,13 +120,36 @@ public:
         }
     }
 
+    // Removes selected Rack shelf
+    void removeRack(Rack rackToBeDeleted) {
+        for (int i = 0; i < RackArrSize; i++) {
+            if (rackToBeDeleted == Racks[i]) {
+                Racks[i] = Rack();
+                updateRacks(); // Updates Racks so the empty ones go to the end of the array
+                break;
+            }
+        }
+    }
+
     // Removes last Rack shelf
-    void removeRack() {
+    void removeLastRack() {
         if (RackCounter > 0) {
-            Racks[RackCounter-1] = Rack();
+            Racks[RackCounter - 1] = Rack();
             RackCounter--;
-        } else {
+        }
+        else {
             cout << "Rack Array is already empty! Cannot delete non-existent object!" << endl;
+        }
+    }
+
+    // Updates Rack Integrity - Empty Racks should be at the end of the array
+    void updateRacks() {
+        for (int i = 0; i < RackCounter; i++) {
+            if (Racks[i] == "") {
+                Racks[i] = Racks[RackCounter-1];
+                Racks[RackCounter-1] = Rack();
+                RackCounter--;
+            }
         }
     }
 
@@ -167,6 +192,21 @@ ostream& operator<<(ostream& os, Rack item) {
     return os;
 }
 
+bool operator==(Rack a, Rack b) {
+    if (a.RackID == b.RackID) {
+        return true;
+    } else {
+        return false;
+    }
+}
+bool operator==(Rack a, string str) {
+    if (a.RackID == str) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 int main()
 {
     // Main is used mainly for tests at the moment
@@ -175,6 +215,19 @@ int main()
     Rack rack_b = Rack("#A2", 20);
     Rack rack_c = Rack("#B1", 30);
     Warehouse storage_a = Warehouse(110, 300, 12);
+    Warehouse storage_b = Warehouse(120, 300, 12, 6);
+
+    storage_b.addRack(rack_a);
+    storage_b.addRack(rack_a);
+    storage_b.addRack(rack_b);
+    storage_b.addRack(rack_b);
+    storage_b.addRack(rack_c);
+    storage_b.addRack(rack_c);
+
+    storage_b.removeRack(rack_b);
+    storage_b.returnAvaiableRacks();
+
+    storage_b.displayRacks();
    
     return 0;
 }
