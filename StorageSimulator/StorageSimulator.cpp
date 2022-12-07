@@ -72,16 +72,51 @@ public:
     float calculateSpace() {
         return Length * Width * Height;
     }
+
+    // Asks for adding more rack space in case of depleating - Returns 1 if a Rack space is meant to be added and 0 if not
+    bool askForMoreRackSpace() {
+        const string choiceUnresolved = "Choice unresolved! Next time give an Y/N answer";
+        char choice;
+        cout << "Rack Spaces depleated! Add another one? (Y/N): ";
+        cin >> choice;
+        
+        if (cin.fail()) {
+
+            cin.clear();
+            cin.ignore();
+            cout << choiceUnresolved << endl;
+
+        } else if (choice == 'Y') {
+
+            int rackSpacesToAdd;
+            cout << "How many Rack's slots?: ";
+            cin >> rackSpacesToAdd;
+
+            addMoreRackSpace(rackSpacesToAdd);
+
+            return 1;
+
+        } else if (choice == 'N') {
+
+            cout << "Rack not added" << endl;
+
+        } else {
+
+            cout << choiceUnresolved << endl;
+
+        }
+        return 0;
+    }
     
     // Returns dynamical value of Racks Array
-    void returnAvaiableRacks() {
-        cout << "Avaiable Racks: " << RackArrSize-RackCounter << endl;
+    void displayAvaiableRackSpace() {
+        cout << "Avaiable Rack Space: " << RackArrSize-RackCounter << endl;
     }
 
     // Dynamically extends Rack Table
-    void addMoreRacks(int rackSpacesToAdd) {
+    void addMoreRackSpace(int rackSpaceToAdd) {
 
-        int newSize = RackArrSize + rackSpacesToAdd;
+        int newSize = RackArrSize + rackSpaceToAdd;
 
         if (Racks != nullptr) {
 
@@ -116,7 +151,10 @@ public:
             Racks[RackCounter] = rackToBeAdded;
             RackCounter++;
         } else {
-            cout << "Rack Spaces depleated! Add another one? (Y/N)" << endl;
+            if (askForMoreRackSpace()) {
+                Racks[RackCounter] = rackToBeAdded;
+                RackCounter++;
+            }
         }
     }
 
@@ -223,11 +261,10 @@ int main()
     storage_b.addRack(rack_b);
     storage_b.addRack(rack_c);
     storage_b.addRack(rack_c);
-
-    storage_b.removeRack(rack_b);
-    storage_b.returnAvaiableRacks();
+    storage_b.addRack(rack_a);
 
     storage_b.displayRacks();
+    storage_b.displayAvaiableRackSpace();
    
     return 0;
 }
