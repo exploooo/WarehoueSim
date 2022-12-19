@@ -60,11 +60,113 @@ public:
 // A storage Unit inside of a Rack
 class Unit {
 private:
+    // Basic
+    string UnitID;
+
     // Array
     int CargoArraySize;
     Cargo** CargoArray;
 
+    // Prop Empty item - to contain first empty space place and type_info
+    const Cargo* EMPTY_SPACE_OBJECT_PROP = new EmptyCargoSpace;
+    const type_info& EMPTY_SPACE = typeid(*EMPTY_SPACE_OBJECT_PROP);
+    int EMPTY_SPACE_INDEX;
+
 public:
+
+    // Return Index of Next empty item in Unit or -1 if Unit is full of Cargo
+    int findEmptyItem() {
+        for (int i = 0; i < CargoArraySize; i++) {
+            if (typeid(*CargoArray[i]) == EMPTY_SPACE) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // Return Index of Last empty item in Unit or -1 if Unit is full of Cargo
+    int findLastEmptyItem() {
+        for (int i = CargoArraySize - 1; i > EMPTY_SPACE_INDEX; i--) {
+            if (typeid(*CargoArray[i]) == EMPTY_SPACE) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    int calculateFreeSpace() {
+        int sum = 0;
+        for (int i = 0; i < CargoArraySize; i++) {
+            if (typeid(*CargoArray[i]) == EMPTY_SPACE) {
+                sum++;
+            }
+        }
+        return sum;
+    }
+
+    // Places Cargo box in specified place in this Unit
+    void placeCargo(Cargo* cargoToBePlaced, int index) {
+        // Protects from putting beyond Array range
+        if (index >= CargoArraySize) {
+            cout << "Error! Index value to high" << endl;
+            return;
+        }
+        // Protects input from EmptySpace which is only dynamically declared object
+        if (typeid(*cargoToBePlaced) == EMPTY_SPACE) {
+            cout << "Error! Cannot Allocate static Empty Space item! Try with other type of cargo." << endl;
+            return;
+        }
+        if (EMPTY_SPACE_INDEX == -1 || findEmptyItem() == -1) {
+            cout << "Error! Unit space depleated!" << endl;
+            return;
+        }
+        if (index == EMPTY_SPACE_INDEX) {
+            EMPTY_SPACE_INDEX = findEmptyItem();
+        }
+        // Deletes previously dynamically allocated memory
+        delete CargoArray[index];
+        CargoArray[index] = cargoToBePlaced;
+    }
+
+    // Removes Cargo under specified index
+    void removeCargo(int index) {
+        if (typeid(*CargoArray[index]) == EMPTY_SPACE) {
+            cout << "Error! Cannot Remove cargo from empty space" << endl;
+            return;
+        }
+        CargoArray[index] = new EmptyCargoSpace;
+        if (index < EMPTY_SPACE_INDEX) {
+            EMPTY_SPACE_INDEX = index;
+        }
+    }
+
+    //Empties Unit completely
+    void removeAllCargo() {
+        if (EMPTY_SPACE_INDEX == 0) {
+            cout << "Cargo Array is already empty!" << endl;
+            return;
+        }
+        for (int i = 0; i < CargoArraySize; i++) {
+            if (typeid(*CargoArray[i]) != EMPTY_SPACE) {
+                CargoArray[i] = new EmptyCargoSpace;
+            }
+        }
+    }
+
+    // Displays Cargo Array Size
+    void displayArrSize() {
+        cout << CargoArraySize;
+    }
+
+    // Displays ID And Array Size
+    void displayInfo() {
+        cout << "ID: " << UnitID << ", Capacity: " << CargoArraySize << endl;
+    }
+
+    // Displays how many free space is there left
+    void displayFreeSpace() {
+        cout << "Free Space: " << calculateFreeSpace() << "/" << CargoArraySize << endl;
+    }
 
     // Displays All cargo in this Unit
     void displayCargo() {
@@ -74,24 +176,23 @@ public:
         }
     }
 
-    // Places Cargo box in specified place in this Unit
-    void placeCargo(int index, Cargo* cargoToBePlaced) {
-        delete CargoArray[index];
-        CargoArray[index] = cargoToBePlaced;
-    }
-
-    // Displays Cargo Array Size
-    void displayArrSize() {
-        cout << CargoArraySize;
+    // Displays ID, Array size and it's content
+    void displayAll() {
+        displayInfo();
+        displayFreeSpace();
+        cout << "-------------\n" << "Content: \n";
+        displayCargo();
+        cout << "-------------\n";
     }
 
     // Constructor with empty array
-    Unit(int cargoArraySize) : CargoArraySize(cargoArraySize)
+    Unit(string unitID, int cargoArraySize) : UnitID(unitID), CargoArraySize(cargoArraySize)
     {
         CargoArray = new Cargo*[CargoArraySize];
         for (int i = 0; i < CargoArraySize; i++) {
             CargoArray[i] = new EmptyCargoSpace;
         }
+        EMPTY_SPACE_INDEX = 0;
     };
 
     //Constructor without an array - Default Constructor
@@ -99,25 +200,20 @@ public:
     {
         CargoArray = nullptr;
         CargoArraySize = 0;
+        EMPTY_SPACE_INDEX = 0;
     };
 
     ~Unit(){
-        // Need to check if Array content is dynamically allocated in this case i use only Empty Spaces as dynamically assigned valu
-        Cargo* tempEmptySpace = new EmptyCargoSpace;
-        const type_info& EMPTY_SPACE_TYPE = typeid(*tempEmptySpace);
-
-        delete tempEmptySpace;
-
+        // Need to check if Array content is dynamically allocated in this case can be used only Empty Spaces as dynamically assigned value
         for (int i = 0; i < CargoArraySize; i++) {
-            if (typeid(*CargoArray[i]) == EMPTY_SPACE_TYPE) {
+            if (typeid(*CargoArray[i]) == EMPTY_SPACE) {
                 delete CargoArray[i];
             }
         }
         delete[] CargoArray;
+        delete EMPTY_SPACE_OBJECT_PROP;
     }
 
-private:
-    int UnitCount = 0;
 };
 
 // TBDIF
@@ -340,15 +436,18 @@ int main()
 
     const int size = 10;
 
-    Unit unit_a = Unit(size);
+    Unit unit_a = Unit("A1", size);
 
     FoodCargo carrots = FoodCargo();
 
     for (int i = 0; i < size/2; i++) {
-        unit_a.placeCargo(i, &carrots);
+        unit_a.placeCargo(&carrots, i);
     }
 
-    unit_a.displayCargo();
+    unit_a.removeCargo(4);
+    unit_a.displayAll();
+
+
 
     return 0;
 }
