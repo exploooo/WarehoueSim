@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <typeinfo>
 using namespace std;
 
 // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -22,12 +23,101 @@ using namespace std;
 // Optional maybe learn pointers and do some magic
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+// A parent abstract Cargo object
+// TBDIF
+// Future inheritance to distinct Cargo Types
+class Cargo {
+public:
+
+    virtual void showContent() = 0;
+
+};
+
+class EmptyCargoSpace : public Cargo {
+private:
+    string ContentDescription = "Empty Space";
+
+public:
+
+    virtual void showContent() {
+        cout << ContentDescription << endl;
+    }
+
+};
+
+class FoodCargo : public Cargo {
+private:
+    string ContentDescription = "Food";
+
+public:
+
+    virtual void showContent() {
+        cout << ContentDescription << endl;
+    }
+};
+
 // TBDIF
 // A storage Unit inside of a Rack
 class Unit {
 private:
+    // Array
+    int CargoArraySize;
+    Cargo** CargoArray;
 
 public:
+
+    // Displays All cargo in this Unit
+    void displayCargo() {
+        for (int i = 0; i < CargoArraySize; i++) {
+            cout << "Place no." << i << ":";
+            CargoArray[i]->showContent();
+        }
+    }
+
+    // Places Cargo box in specified place in this Unit
+    void placeCargo(int index, Cargo* cargoToBePlaced) {
+        delete CargoArray[index];
+        CargoArray[index] = cargoToBePlaced;
+    }
+
+    // Displays Cargo Array Size
+    void displayArrSize() {
+        cout << CargoArraySize;
+    }
+
+    // Constructor with empty array
+    Unit(int cargoArraySize) : CargoArraySize(cargoArraySize)
+    {
+        CargoArray = new Cargo*[CargoArraySize];
+        for (int i = 0; i < CargoArraySize; i++) {
+            CargoArray[i] = new EmptyCargoSpace;
+        }
+    };
+
+    //Constructor without an array - Default Constructor
+    Unit()
+    {
+        CargoArray = nullptr;
+        CargoArraySize = 0;
+    };
+
+    ~Unit(){
+        // Need to check if Array content is dynamically allocated in this case i use only Empty Spaces as dynamically assigned valu
+        Cargo* tempEmptySpace = new EmptyCargoSpace;
+        const type_info& EMPTY_SPACE_TYPE = typeid(*tempEmptySpace);
+
+        delete tempEmptySpace;
+
+        for (int i = 0; i < CargoArraySize; i++) {
+            if (typeid(*CargoArray[i]) == EMPTY_SPACE_TYPE) {
+                delete CargoArray[i];
+            }
+        }
+        delete[] CargoArray;
+    }
+
+private:
+    int UnitCount = 0;
 };
 
 // TBDIF
@@ -35,6 +125,7 @@ public:
 class Rack {
 private:
     string RackID;
+    int MaxUnits; 
 
 public:
 
@@ -46,7 +137,7 @@ public:
     Rack()
     {};
 
-    Rack(string rackID, int unitsCount): RackID(rackID), UnitsCount(unitsCount)
+    Rack(string rackID, int maxUnits) : RackID(rackID), MaxUnits(maxUnits)
     {};
 
 protected:
@@ -123,8 +214,7 @@ public:
             Rack* tempRacks = new Rack[newSize];
 
             for (int i = 0; i < RackArrSize; i++) {
-                tempRacks[i] = Racks[i]; // Tbh i don't know what that error means at the moment
-                                         //TBDIF Address that error
+                tempRacks[i] = Racks[i]; 
             }
 
             delete[] Racks;
@@ -132,8 +222,7 @@ public:
             Racks = new Rack[newSize];
 
             for (int i = 0; i < RackArrSize; i++) {
-                Racks[i] = tempRacks[i];// Tbh i don't know what that error means at the moment
-                                         //TBDIF Address that error
+                Racks[i] = tempRacks[i];
             }
 
             delete[] tempRacks;
@@ -249,23 +338,18 @@ int main()
 {
     // Main is used mainly for tests at the moment
 
-    Rack rack_a = Rack("#A1", 10);
-    Rack rack_b = Rack("#A2", 20);
-    Rack rack_c = Rack("#B1", 30);
-    Warehouse storage_a = Warehouse(110, 300, 12);
-    Warehouse storage_b = Warehouse(120, 300, 12, 6);
+    const int size = 10;
 
-    storage_b.addRack(rack_a);
-    storage_b.addRack(rack_a);
-    storage_b.addRack(rack_b);
-    storage_b.addRack(rack_b);
-    storage_b.addRack(rack_c);
-    storage_b.addRack(rack_c);
-    storage_b.addRack(rack_a);
+    Unit unit_a = Unit(size);
 
-    storage_b.displayRacks();
-    storage_b.displayAvaiableRackSpace();
-   
+    FoodCargo carrots = FoodCargo();
+
+    for (int i = 0; i < size/2; i++) {
+        unit_a.placeCargo(i, &carrots);
+    }
+
+    unit_a.displayCargo();
+
     return 0;
 }
 
