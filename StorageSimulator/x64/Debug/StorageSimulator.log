@@ -1,1 +1,2 @@
-﻿LINK : fatal error LNK1168: nie można otworzyć pliku E:\C++\StorageSimulator\x64\Debug\StorageSimulator.exe do zapisu
+﻿  StorageSimulator.cpp
+  StorageSimulator.vcxproj -> E:\C++\StorageSimulator\x64\Debug\StorageSimulator.exe
